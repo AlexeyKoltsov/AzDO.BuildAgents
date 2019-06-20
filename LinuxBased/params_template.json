@@ -1,9 +1,8 @@
 {
     "image": "",
     "AzDOaccount": {
-        "accountname": "",
+        "organization": "%ORGNAME%",
         "poolname": "",
-        "accesstoken": "",
         "agentname": ""
     }
 }
