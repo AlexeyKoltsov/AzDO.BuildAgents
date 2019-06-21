@@ -14,6 +14,7 @@ FULLCUSTOMIMAGE="${HOSTNAME}/${IMAGE}"
 echo "\n===================="
 echo -e "Running image:\n Image name: ${FULLCUSTOMIMAGE}\n Agent name: ${AGENT}\n Pool: ${POOL}"
 docker run -d \
+    --restart=always \
     -e VSTS_ACCOUNT=${ACCOUNT} \
     -e VSTS_POOL=${POOL} \
     -e VSTS_TOKEN=${TOKEN} \
