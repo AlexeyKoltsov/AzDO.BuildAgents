@@ -5,6 +5,11 @@ Currently there is only support for Linux-based images.
 Project from [Microsoft](https://hub.docker.com/_/microsoft-azure-pipelines-vsts-agent) describes the list of pre-builded Linux-agents which can be used to deploy. It's depricated for now, so I'm planning to move from it.
 
 
+## Requerements
+### Linux hosts
+- [jq](https://stedolan.github.io/jq/)
+- [git](https://git-scm.com)
+
 ## Steps to build a custom agent
 First of all, if you'd like to deploy custom duild agent,you have to build your custom image. This small script example will help you pull the code and start:
 
