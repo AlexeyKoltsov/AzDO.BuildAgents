@@ -9,11 +9,12 @@ cd LinuxBased && chmod +x build.sh run.sh
 ```
 ## Steps to run a custom agent
 
+- Prepare your Azure DevOps organization description based on the **organizations_template.json**, and name it **organizations.json** and place under the **data** folder.
 
+- Prepare a custom parameters file based on the **params_template.json**, name it f.e. **params-MyConfig.json** and place under the **data** folder. It will help you not to push your data to source code
 
-- Prepare a custom parameters file based on the **params_template.json** and name it f.e. __params-MyConfig.json__
 
 - Run agent: 
 ``` bash
-/bin/bash -c "./run.sh params-MyConfig.json"
+/bin/bash -c "./run.sh  ./../data/params-MyConfig.json"
 ```
