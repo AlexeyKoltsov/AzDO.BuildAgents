@@ -11,7 +11,7 @@ AGENT=$(echo ${JSON} | jq -r .AzDOaccount.agentname)
 IMAGE=$(echo ${JSON} | jq -r .image)
 
 FULLCUSTOMIMAGE="${HOSTNAME}/${IMAGE}"
-echo "\n===================="
+echo -e "\n===================="
 echo -e "Running image:\n Image name: ${FULLCUSTOMIMAGE}\n Agent name: ${AGENT}\n Pool: ${POOL}"
 docker run -d \
     --restart=always \

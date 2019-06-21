@@ -9,6 +9,7 @@ RUN \
     chmod +x /tmp/*.sh &&\
     /bin/bash -l -c /tmp/install-azcli.sh &&\
     /bin/bash -l -c /tmp/install-pwsh.sh &&\
+    /bin/bash -l -c /tmp/install-azcopy.sh &&\
     apt-get autoremove &&\
     rm -rf /var/lib/apt/lists/* &&\
     rm -rf /tmp/*.sh
