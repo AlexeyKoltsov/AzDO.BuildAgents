@@ -1,0 +1,8 @@
+{
+    "image": "",
+    "AzDOaccount": {
+        "organization": "%ORGNAME%",
+        "poolname": "",
+        "agentname": ""
+    }
+}
