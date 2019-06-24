@@ -14,3 +14,4 @@ fi
 FULLCUSTOMIMAGE="${HOSTNAME}/${CUSTOMIMAGE}:${CUSTOMTAG}"
 echo -e "Building image:\n Image name: ${FULLCUSTOMIMAGE}\n From: ${BASEIMAGE}"
 docker build -t "${FULLCUSTOMIMAGE}" --build-arg baseImage=${BASEIMAGE} -f Dockerfile .
+docker tag "${FULLCUSTOMIMAGE}"  "${HOSTNAME}/${CUSTOMIMAGE}:latest"
