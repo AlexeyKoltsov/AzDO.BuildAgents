@@ -11,7 +11,7 @@ Project from [Microsoft](https://hub.docker.com/_/microsoft-azure-pipelines-vsts
 - [git](https://git-scm.com)
 
 ## Steps to build a custom agent
-First of all, if you'd like to deploy custom duild agent,you have to build your custom image. This small script example will help you pull the code and start:
+First of all, if you'd like to deploy custom build agent, you have to build your custom image. This small script example will help you pull the code and start:
 
 ```bash
 git clone https://github.com/AlexeyKoltsov/AzDO.BuildAgents.git
@@ -23,7 +23,7 @@ cd LinuxBased && chmod +x build.sh run.sh
 * Our final image will be named as **ubuntu-16.04**
 * The name of repository will be appended to the image name automatically during buildtime (your host's fqdn)
 
-At this moment **az cli** and **powershell core** are being installed during building, but nothing can stop you from adding custom install scripts under the */scripts* directory and adding install command to the *Dockerfile*
+At this moment **az cli**, **powershell core** and **AzCopy** are being installed during building, but nothing can stop you from adding custom install scripts under the */scripts* directory and adding install command to the *Dockerfile*
 
 ## Steps to run a custom agent
 
@@ -39,6 +39,8 @@ At this moment **az cli** and **powershell core** are being installed during bui
 Make a note:
 * _MyLovelyOrg_ is a name of your org settings, which you will reference in __params-*__ files
 * _bigbusinesscorp_ is the actual name of your AzDO account
+* _accesstoken_ is PAT, generated to [authenticate build agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/v2-linux?view=azure-devops#authenticate-with-a-personal-access-token-pat)
+
 
 2. Prepare a custom parameters file based on the **params_template.json**, name it f.e. **params-MyConfig.json** and place under the **data** folder. It will help you not to push your data to source code, f.e.:
 ```json
