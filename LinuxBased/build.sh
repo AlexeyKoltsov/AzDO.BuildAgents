@@ -4,8 +4,12 @@ HOSTNAME=$(hostname --fqdn | awk '{print tolower($0)}')
 
 BASEIMAGE=$1
 CUSTOMIMAGE=$2
-#CUSTOMTAG=$(echo "${BASEIMAGE}" | awk -F ':' '{print $2}')
-CUSTOMTAG="latest"
+
+if [ -z "$3" ]; then
+    CUSTOMTAG="latest"
+else
+    CUSTOMTAG=$3
+fi
 
 FULLCUSTOMIMAGE="${HOSTNAME}/${CUSTOMIMAGE}:${CUSTOMTAG}"
 echo -e "Building image:\n Image name: ${FULLCUSTOMIMAGE}\n From: ${BASEIMAGE}"

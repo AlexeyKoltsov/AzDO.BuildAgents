@@ -1,6 +1,6 @@
 #! /bin/bash
 
-apt-get install curl apt-transport-https lsb-release gnupg
+apt-get install curl apt-transport-https lsb-release gnupg -y
 curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
     gpg --dearmor | \
     tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
