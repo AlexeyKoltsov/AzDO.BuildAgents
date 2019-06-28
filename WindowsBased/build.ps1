@@ -38,6 +38,9 @@ if (-not $CustomTag) {
 }
 if (-not $Hostname) {
     if (-not $env:UserDNSDomain) {
+        if (-not $env:ComputerName) {
+            $Hostname = (hostname --fqdn)
+        }
         $Hostname = $env:ComputerName
     }
     else{
