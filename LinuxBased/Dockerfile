@@ -2,15 +2,33 @@ ARG baseImage
 
 FROM ${baseImage}
 
-COPY scripts/*.sh /tmp/
-RUN \
-    apt-get update &&\
-    apt-get install wget &&\
-    chmod +x /tmp/*.sh &&\
-    /bin/bash -l -c /tmp/install-azcli.sh &&\
-    /bin/bash -l -c /tmp/install-pwsh.sh &&\
-    /bin/bash -l -c /tmp/install-azcopy.sh &&\
+# To make it easier for build and release pipelines to run apt-get,
+# configure apt to not require confirmation (assume the -y argument by default)
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "APT::Get::Assume-Yes \"true\";" > /etc/apt/apt.conf.d/90assumeyes
+
+WORKDIR /azp
+COPY scripts/*.sh ./
+
+RUN apt-get update \
+&& apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        jq \
+        git \
+        iputils-ping \
+        libcurl3 \
+        libicu55 \
+&&  chmod +x ./*.sh &&\
+    /bin/bash -l -c ./install-azcli.sh &&\
+    /bin/bash -l -c ./install-pwsh.sh &&\
+    /bin/bash -l -c ./install-azcopy.sh &&\
     apt-get autoremove &&\
     rm -rf /var/lib/apt/lists/* &&\
-    rm -rf /tmp/*.sh
+    rm -rf ./install-*.sh
+
+CMD ["./start.sh"]
+
+
+
 
