@@ -41,13 +41,15 @@ if (-not $Hostname) {
         if (-not $env:ComputerName) {
             $HostnameRaw = (hostname --fqdn)
         }
-        $HostnameRaw = $env:ComputerName
+        else {
+            $HostnameRaw = $env:ComputerName 
+        }       
     }
     else{
         $HostnameRaw = "$env:ComputerName.$env:UserDNSDomain"
     }
+    $Hostname = $HostnameRaw.ToLower()
 }
-$Hostname = $HostnameRaw.ToLower()
 
 $FullCustomImageName = "${Hostname}/${CustomImageName}:$CustomTag"
 
