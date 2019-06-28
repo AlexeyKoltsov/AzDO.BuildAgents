@@ -38,15 +38,18 @@ if (-not $CustomTag) {
 }
 if (-not $Hostname) {
     if (-not $env:UserDNSDomain) {
-        $Hostname = $env:ComputerName
+        if (-not $env:ComputerName) {
+            $HostnameRaw = (hostname --fqdn)
+        }
+        $HostnameRaw = $env:ComputerName
     }
     else{
-        $Hostname = "$env:ComputerName.$env:UserDNSDomain"
+        $HostnameRaw = "$env:ComputerName.$env:UserDNSDomain"
     }
 }
-$Hostname = $Hostname.ToLower()
+$Hostname = $HostnameRaw.ToLower()
 
-$FullCustomImageName = "$Hostname/${CustomImageName}:$CustomTag"
+$FullCustomImageName = "${Hostname}/${CustomImageName}:$CustomTag"
 
 Write-Output "Building image:`n Image name: ${FullCustomImageName}`n From: ${BaseImage}"
 docker build -t "${FullCustomImageName}" --build-arg baseImage=${BaseImage} -f Dockerfile .
