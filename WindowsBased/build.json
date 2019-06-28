@@ -1,0 +1,6 @@
+{
+    "baseimage": "mcr.microsoft.com/windows/servercore:ltsc2019",
+    "hostname": "",
+    "customimagename": "wincore2019",
+    "customimagetag": "latest"
+}
