@@ -19,6 +19,7 @@ RUN apt-get update \
         iputils-ping \
         libcurl3 \
         libicu55 \
+        wget \
 &&  chmod +x ./*.sh &&\
     /bin/bash -l -c ./install-azcli.sh &&\
     /bin/bash -l -c ./install-pwsh.sh &&\
@@ -28,7 +29,3 @@ RUN apt-get update \
     rm -rf ./install-*.sh
 
 CMD ["./start.sh"]
-
-
-
-
