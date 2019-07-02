@@ -49,6 +49,7 @@ $JSONData | % {
         -e AZP_POOL="${Pool}" ``
         -e AZP_TOKEN="${Token}" ``
         -e AZP_AGENT_NAME="${AgentName}" ``
+        -v /var/run/docker.sock:/var/run/docker.sock ``
         "${FullCustomImage}"
 "@
 
