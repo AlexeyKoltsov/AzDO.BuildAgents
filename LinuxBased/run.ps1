@@ -34,9 +34,7 @@ $JSONData | % {
     $Image = $JSON.image
 
     $FullCustomImage = "${Hostname}/${Image}"
-    if ($PoolSize -gt 1) {
-        $AgentName = "${Agent}-${Pool}-{{NUM}}"
-    }
+    $AgentName = "${Agent}-${Pool}-{{NUM}}"
     $ContainerName = $AgentName.ToLower()
 
 
@@ -47,7 +45,7 @@ $JSONData | % {
         docker run -d ``
         --name "${ContainerName}" ``
         --restart=always ``
-        -e AZP_URL="https://dev.azure/${Account}" ``
+        -e AZP_URL="https://dev.azure.com/${Account}" ``
         -e AZP_POOL="${Pool}" ``
         -e AZP_TOKEN="${Token}" ``
         -e AZP_AGENT_NAME="${AgentName}" ``
