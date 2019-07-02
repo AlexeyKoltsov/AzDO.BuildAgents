@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    $ParamsJSON
+        [string]$ParamsJSON,
+        [switch]$Override
 )
 $Kind = "linux"
 
@@ -34,12 +35,8 @@ $JSONData | % {
     $Image = $JSON.image
 
     $FullCustomImage = "${Hostname}/${Image}"
-    $AgentName = "${Agent}-${Pool}-{{NUM}}"
+    $AgentName = "${Agent}-${Pool}-{{num}}"
     $ContainerName = $AgentName.ToLower()
-
-
-
-
 
     $ExpressionTpl = @"
         docker run -d ``
@@ -60,7 +57,24 @@ $JSONData | % {
         else {
             $NumReplacer = "$($i+1)"
         }
-        $Expression = $ExpressionTpl -replace "{{NUM}}", $NumReplacer
+        $Expression = $ExpressionTpl -replace "{{num}}", $NumReplacer
+
+        $ContainerNameReplaced = $ContainerName -replace "{{num}}", $NumReplacer
+        $ExistingContainer = $((docker ps -f name=$ContainerNameReplaced))[1] -replace '\s{2,}', '__' -split '__'
+
+        if ($ExistingContainer.Length -gt 1) {
+            if ($Override) {
+                Write-Output "Overriding $($ExistingContainer[5])"
+                $hash = $ExistingContainer[0]
+                [void] (docker stop $hash)
+                [void] (docker rm $hash)
+            }
+            else{
+                Write-Output "Comtainer $($ExistingContainer[5]) is already running"
+                continue
+            }
+            
+        }
 
         Write-Output "`n===================="
         Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${AgentName}`n Pool: ${Pool}"
