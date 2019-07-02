@@ -2,8 +2,6 @@ ARG baseImage
 
 FROM ${baseImage}
 
-# To make it easier for build and release pipelines to run apt-get,
-# configure apt to not require confirmation (assume the -y argument by default)
 ENV DEBIAN_FRONTEND=noninteractive
 RUN echo "APT::Get::Assume-Yes \"true\";" > /etc/apt/apt.conf.d/90assumeyes
 
@@ -12,18 +10,17 @@ COPY scripts/*.sh ./
 
 RUN apt-get update \
 && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
         jq \
         git \
         iputils-ping \
         libcurl3 \
         libicu55 \
-        wget \
 &&  chmod +x ./*.sh &&\
     /bin/bash -l -c ./install-azcli.sh &&\
     /bin/bash -l -c ./install-pwsh.sh &&\
+    /bin/bash -l -c ./install-pwsh-modules.sh &&\
     /bin/bash -l -c ./install-azcopy.sh &&\
+    /bin/bash -l -c ./install-docker.sh &&\
     apt-get autoremove &&\
     rm -rf /var/lib/apt/lists/* &&\
     rm -rf ./install-*.sh
