@@ -3,6 +3,15 @@ param(
         [string]$ParamsJSON,
         [switch]$Override
 )
+
+function Remove-DockerContainer {
+    param (
+        [string]$Hash
+    )
+    [void] (docker stop $Hash)
+    [void] (docker rm $Hash)
+}
+
 $Kind = "linux"
 
 if (-not $Hostname) {
@@ -35,49 +44,77 @@ $JSONData | % {
     $Image = $JSON.image
 
     $FullCustomImage = "${Hostname}/${Image}"
-    $AgentName = "${Agent}-${Pool}-{{num}}"
-    $ContainerName = $AgentName.ToLower()
+    $AgentNameFamily = "${Agent}-${Pool}"
+    $ContainerNameFamily = $AgentNameFamily.ToLower()
 
     $ExpressionTpl = @"
         docker run -d ``
-        --name "${ContainerName}" ``
+        --name "${ContainerNameFamily}-{{num}}" ``
         --restart=always ``
         -e AZP_URL="https://dev.azure.com/${Account}" ``
         -e AZP_POOL="${Pool}" ``
         -e AZP_TOKEN="${Token}" ``
-        -e AZP_AGENT_NAME="${AgentName}" ``
+        -e AZP_AGENT_NAME="${AgentNameFamily}-{{num}}" ``
         -v /var/run/docker.sock:/var/run/docker.sock ``
         "${FullCustomImage}"
 "@
 
-    for ($i = 0; $i -lt $PoolSize ; $i++) {
+    $ExistingContainers = @()
+    $ExistingContainersRaw = $((docker ps -f name=$ContainerNameFamily))[1..100]
+    $ExistingContainersRaw |%{
+        $item = $_ -replace '\s{2,}', '__' -split '__'
+        $ExistingContainers += [PSCustomObject]@{
+            hash = $item[0]
+            image = $item[1]
+            status = $item[4]
+            name = $item[-1]
+        }
+    }
+
+    if ($ExistingContainers.Count -gt $PoolSize) {
+        $StartNum = $ExistingContainers.Count - $PoolSize + 1
+        $MaxIter = $ExistingContainers.Count       
+    }
+    else{
+        $MaxIter = $PoolSize
+    }
+
+    for ($i = 1; $i -le $MaxIter ; $i++) {
         if ($i -lt 10) {
-            $NumReplacer = "0$($i+1)"
+            $NumReplacer = "0$i"
         }
         else {
-            $NumReplacer = "$($i+1)"
+            $NumReplacer = "$i"
         }
+
+        $ContainerNameCurrent = "${ContainerNameFamily}-${NumReplacer}"
+        $ExistingContainer = $ExistingContainers | Where name -EQ $ContainerNameCurrent
+
+        # This agent has to be removed as it exceeds the pool size
+        if ($i -gt $PoolSize) {
+            Write-Output "Removing exceeding pool size container $($ExistingContainer.name)"
+            Remove-DockerContainer -Hash $ExistingContainer.hash
+            continue
+        }
+
+
         $Expression = $ExpressionTpl -replace "{{num}}", $NumReplacer
 
-        $ContainerNameReplaced = $ContainerName -replace "{{num}}", $NumReplacer
-        $ExistingContainer = $((docker ps -f name=$ContainerNameReplaced))[1] -replace '\s{2,}', '__' -split '__'
-
-        if ($ExistingContainer.Length -gt 1) {
+        if ($ExistingContainer) {
             if ($Override) {
-                Write-Output "Overriding $($ExistingContainer[5])"
-                $hash = $ExistingContainer[0]
-                [void] (docker stop $hash)
-                [void] (docker rm $hash)
+                Write-Output "Overriding $($ExistingContainer.name)"
+                Remove-DockerContainer -Hash $ExistingContainer.hash
+
             }
             else{
-                Write-Output "Comtainer $($ExistingContainer[5]) is already running"
+                Write-Output "Comtainer $($ExistingContainer.name) is already running"
                 continue
             }
             
         }
 
         Write-Output "`n===================="
-        Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${AgentName}`n Pool: ${Pool}"
+        Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${ContainerNameReplaced}`n Pool: ${Pool}"
         Invoke-Expression $Expression
     }
 }
