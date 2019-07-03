@@ -1,6 +1,8 @@
 #! /bin/bash
 # https://docs.microsoft.com/ru-ru/powershell/scripting/install/installing-powershell-core-on-linux
 
+apt-get install wget
+
 VER=$(cat /etc/os-release | grep PRETTY_NAME | awk -F'=' '{print $2}' | tr -d '"')
 
 if [[ "${VER}" =~ "GNU/Linux" ]]; then
