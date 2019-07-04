@@ -1,0 +1,6 @@
+{
+    "baseimage": "ubuntu:16.04",
+    "hostname": "",
+    "customimagename": "ubuntu-16.04",
+    "customimagetag": "latest"
+}

@@ -24,9 +24,14 @@ elseif ($PsCmdlet.ParameterSetName -eq "JSON") {
     $Hostname = $InputParams.hostname
     $CustomImageName = $InputParams.customimagename
     $CustomTag = $InputParams.customimagetag
+    
+    $DockerfileName = "Dockerfile-${CustomImageName}"
 
-    if(-not $BaseImage){ throw "BaseImage is not defined" }
-    if(-not $CustomImageName){ throw "CustomImageName is not defined" }
+    if( -not $BaseImage ){ throw "BaseImage is not defined" }
+    if( -not $CustomImageName ){ throw "CustomImageName is not defined" }
+    if( -not $(Test-Path .\$DockerfileName) ){ throw "The file $DockerfileName not found" }
+
+    Copy-Item .\$DockerfileName '.\Dockerfile' -Force
 
 }
 else {
@@ -39,20 +44,25 @@ if (-not $CustomTag) {
 if (-not $Hostname) {
     if (-not $env:UserDNSDomain) {
         if (-not $env:ComputerName) {
-            $Hostname = (hostname --fqdn)
+            $HostnameRaw = (hostname --fqdn)
         }
-        $Hostname = $env:ComputerName
+        else {
+            $HostnameRaw = $env:ComputerName 
+        }       
     }
     else{
-        $Hostname = "$env:ComputerName.$env:UserDNSDomain"
+        $HostnameRaw = "$env:ComputerName.$env:UserDNSDomain"
     }
+    $Hostname = $HostnameRaw.ToLower()
 }
-$Hostname = $Hostname.ToLower()
 
-$FullCustomImageName = "$Hostname/${CustomImageName}:$CustomTag"
+$FullCustomImageName = "${Hostname}/${CustomImageName}:$CustomTag"
 
 Write-Output "Building image:`n Image name: ${FullCustomImageName}`n From: ${BaseImage}"
 docker build -t "${FullCustomImageName}" --build-arg baseImage=${BaseImage} -f Dockerfile .
+Remove-Item 'Dockerfile' -Force 
+
 if ($CustomTag -ne "latest") {
     docker tag "${FullCustomImageName}" "${Hostname}/${CustomImageName}:latest"
 }
+
