@@ -45,6 +45,7 @@ function Remove-AzDOAgent {
 }
 
 $Kind = "linux"
+$ErrorActionPreference = "Stop"
 
 if (-not $Hostname) {
     if (-not $env:UserDNSDomain) {
@@ -125,7 +126,12 @@ $JSONData | % {
         if ($i -gt $PoolSize) {
             Write-Output "Removing exceeding pool size container $($ExistingContainer.name)"
             Remove-DockerContainer -Hash $ExistingContainer.hash
-            Remove-AzDOAgent -AgentName $ExistingContainer.name
+            try {
+                Remove-AzDOAgent -AgentName $ExistingContainer.name
+            }
+            catch {
+                Write-Error "Error ${$_.Exception.Message} occured while deleting ${$ExistingContainer.name} agent"
+            }
             continue
         }
         
@@ -133,11 +139,15 @@ $JSONData | % {
             if ($Override) {
                 Write-Output "Overriding $($ExistingContainer.name)"
                 Remove-DockerContainer -Hash $ExistingContainer.hash
-                Remove-AzDOAgent -AgentName $ExistingContainer.name
-
+                try {
+                    Remove-AzDOAgent -AgentName $ExistingContainer.name
+                }
+                catch {
+                    Write-Error "Error ${$_.Exception.Message} occured while deleting ${$ExistingContainer.name} agent"
+                }
             }
             else{
-                Write-Output "Comtainer $($ExistingContainer.name) is already running"
+                Write-Output "Container ${$ExistingContainer.name} is already running"
                 continue
             }
             
@@ -146,7 +156,7 @@ $JSONData | % {
         $Expression = $ExpressionTpl -replace "{{num}}", $NumReplacer
 
         Write-Output "`n===================="
-        Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${ContainerNameReplaced}`n Pool: ${Pool}"
+        Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${$ContainerNameFamily}-${NumReplacer}`n Pool: ${Pool}"
         Invoke-Expression $Expression
     }
 }
