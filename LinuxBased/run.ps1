@@ -9,6 +9,7 @@ function Remove-DockerContainer {
         [string]$Hash
     )
     [void] (docker stop $Hash)
+    Start-Sleep 10
     [void] (docker rm $Hash)
 }
 
@@ -60,19 +61,18 @@ $JSONData | % {
 "@
 
     $ExistingContainers = @()
-    $ExistingContainersRaw = $((docker ps -f name=$ContainerNameFamily))[1..100]
+    $ExistingContainersRaw = $((docker ps -f name=$ContainerNameFamily --format '{{.ID}};{{.Image}};{{.Status}};{{.Names}}'))
     $ExistingContainersRaw |%{
-        $item = $_ -replace '\s{2,}', '__' -split '__'
+        $item = $_ -split ';'
         $ExistingContainers += [PSCustomObject]@{
             hash = $item[0]
             image = $item[1]
-            status = $item[4]
-            name = $item[-1]
+            status = $item[2]
+            name = $item[3]
         }
     }
 
     if ($ExistingContainers.Count -gt $PoolSize) {
-        $StartNum = $ExistingContainers.Count - $PoolSize + 1
         $MaxIter = $ExistingContainers.Count       
     }
     else{
