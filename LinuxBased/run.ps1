@@ -156,7 +156,7 @@ $JSONData | % {
         $Expression = $ExpressionTpl -replace "{{num}}", $NumReplacer
 
         Write-Output "`n===================="
-        Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${$ContainerNameFamily}-${NumReplacer}`n Pool: ${Pool}"
+        Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${ContainerNameCurrent}`n Pool: ${Pool}"
         Invoke-Expression $Expression
     }
 }
