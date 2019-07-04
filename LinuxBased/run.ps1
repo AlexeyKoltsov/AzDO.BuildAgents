@@ -1,8 +1,36 @@
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory=$true)]
         [string]$ParamsJSON,
-        [switch]$Override
+    [ValidateSet(
+        "Relaxed",
+        "OverrideRunning",
+        "RemoveOffline",
+        "Strict"
+        )]
+        [string]$Mode = "Soft",
+        [switch]$OverrideRunningAgent
 )
+
+if ($Mode -eq "Relaxed") {
+    $OverrideRunningAgent = $false
+    $RemoveOfflineAgent = $false
+}
+elseif ($Mode -eq "OverrideRunning") {
+    $OverrideRunningAgent = $true
+    $RemoveOfflineAgent = $false
+}
+elseif ($Mode -eq "RemoveOffline") {
+    $OverrideRunningAgent = $false
+    $RemoveOfflineAgent = $true
+}
+elseif ($Mode -eq "Strict") {
+    $OverrideRunningAgent = $true
+    $RemoveOfflineAgent = $true
+}
+else {
+    throw "Unsupported Mode type: $Mode"
+}
 
 function Remove-DockerContainer {
     param (
@@ -126,25 +154,21 @@ $JSONData | % {
         if ($i -gt $PoolSize) {
             Write-Output "Removing exceeding pool size container $($ExistingContainer.name)"
             Remove-DockerContainer -Hash $ExistingContainer.hash
-            try {
-                Remove-AzDOAgent -AgentName $ExistingContainer.name
-            }
-            catch {
-                Write-Error "Error ${$_.Exception.Message} occured while deleting ${$ExistingContainer.name} agent"
-            }
-            continue
-        }
-        
-        if ($ExistingContainer) {
-            if ($Override) {
-                Write-Output "Overriding $($ExistingContainer.name)"
-                Remove-DockerContainer -Hash $ExistingContainer.hash
+            if ($RemoveOfflineAgent) {
                 try {
                     Remove-AzDOAgent -AgentName $ExistingContainer.name
                 }
                 catch {
                     Write-Error "Error ${$_.Exception.Message} occured while deleting ${$ExistingContainer.name} agent"
                 }
+            }
+            continue
+        }
+        
+        if ($ExistingContainer) {
+            if ($OverrideRunningAgent) {
+                Write-Output "Overriding $($ExistingContainer.name)"
+                Remove-DockerContainer -Hash $ExistingContainer.hash
             }
             else{
                 Write-Output "Container ${$ExistingContainer.name} is already running"
