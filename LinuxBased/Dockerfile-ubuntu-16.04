@@ -1,0 +1,28 @@
+ARG baseImage
+
+FROM ${baseImage}
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "APT::Get::Assume-Yes \"true\";" > /etc/apt/apt.conf.d/90assumeyes
+
+WORKDIR /azp
+COPY scripts/*.sh ./
+
+RUN apt-get update \
+&& apt-get install -y --no-install-recommends \
+        jq \
+        git \
+        iputils-ping \
+        libcurl3 \
+        libicu55 \
+&&  chmod +x ./*.sh &&\
+    /bin/bash -l -c ./install-azcli.sh &&\
+    /bin/bash -l -c ./install-pwsh.sh &&\
+    /bin/bash -l -c ./install-pwsh-modules.sh &&\
+    /bin/bash -l -c ./install-azcopy.sh &&\
+    /bin/bash -l -c ./install-docker.sh &&\
+    apt-get autoremove &&\
+    rm -rf /var/lib/apt/lists/* &&\
+    rm -rf ./install-*.sh
+
+CMD ["./start.sh"]
