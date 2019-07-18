@@ -2,13 +2,19 @@
 param(
     [Parameter(Mandatory=$true)]
         [string]$ParamsJSON,
+    [Parameter(Mandatory=$true)]
+    [ValidateSet(
+        "linux",
+        "windows"
+        )]
+        [string]$Kind,
     [ValidateSet(
         "Relaxed",
         "OverrideRunning",
         "RemoveOffline",
         "Strict"
         )]
-        [string]$Mode = "Soft",
+        [string]$Mode = "Relaxed",
         [switch]$OverrideRunningAgent
 )
 
@@ -72,7 +78,6 @@ function Remove-AzDOAgent {
     Invoke-AzDOApi -Method Delete -Uri $URIDelete
 }
 
-$Kind = "linux"
 $ErrorActionPreference = "Stop"
 
 if (-not $Hostname) {
@@ -108,17 +113,14 @@ $JSONData | % {
     $AgentNameFamily = "${Agent}-${Pool}"
     $ContainerNameFamily = $AgentNameFamily.ToLower()
 
-    $ExpressionTpl = @"
-        docker run -d ``
-        --name "${ContainerNameFamily}-{{num}}" ``
-        --restart=always ``
-        -e AZP_URL="https://dev.azure.com/${Account}" ``
-        -e AZP_POOL="${Pool}" ``
-        -e AZP_TOKEN="${Token}" ``
-        -e AZP_AGENT_NAME="${AgentNameFamily}-{{num}}" ``
-        -v /var/run/docker.sock:/var/run/docker.sock ``
-        "${FullCustomImage}"
-"@
+    $ExpressionTpl = "docker run -d --name ${ContainerNameFamily}-{{num}} --restart=always -e AZP_URL=https://dev.azure.com/${Account} -e AZP_POOL=${Pool} -e AZP_TOKEN=${Token} -e AZP_AGENT_NAME=${AgentNameFamily}-{{num}} {{DOCKERSOCKETS}} ${FullCustomImage}"
+
+    if ($kind -eq "linux") {
+        $ExpressionTpl = $ExpressionTpl -replace "{{DOCKERSOCKETS}}", "-v /var/run/docker.sock:/var/run/docker.sock"
+    }
+    else{
+        $ExpressionTpl = $ExpressionTpl -replace "{{DOCKERSOCKETS}} ", ""
+    }
 
     $ExistingContainers = @()
     $ExistingContainersRaw = $((docker ps -a -f name=$ContainerNameFamily --format '{{.ID}};{{.Image}};{{.Status}};{{.Names}}'))
@@ -181,6 +183,7 @@ $JSONData | % {
 
         Write-Output "`n===================="
         Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${ContainerNameCurrent}`n Pool: ${Pool}"
+        Write-Verbose "Invoking expression:`n$Expression"
         Invoke-Expression $Expression
     }
 }

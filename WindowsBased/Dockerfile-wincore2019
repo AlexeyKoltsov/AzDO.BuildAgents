@@ -1,6 +1,6 @@
 ARG baseImage
 
-FROM {baseImage}
+FROM ${baseImage}
 
 WORKDIR /azp
 COPY scripts/start.ps1 .
