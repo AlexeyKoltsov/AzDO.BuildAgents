@@ -113,7 +113,7 @@ $JSONData | % {
     $AgentNameFamily = "${Agent}-${Pool}"
     $ContainerNameFamily = $AgentNameFamily.ToLower()
 
-    $ExpressionTpl = "docker run -d --name ${ContainerNameFamily}-{{num}} --restart=always -e AZP_URL=https://dev.azure.com/${Account} -e AZP_POOL=${Pool} -e AZP_TOKEN=${Token} -e AZP_AGENT_NAME=${AgentNameFamily}-{{num}} {{DOCKERSOCKETS}} ${FullCustomImage}"
+    $ExpressionTpl = "docker run -d --name $ContainerNameFamily-{{num}} --restart=always -e AZP_URL=https://dev.azure.com/$Account -e AZP_POOL=$Pool -e AZP_TOKEN=$Token -e AZP_AGENT_NAME=$AgentNameFamily-{{num}} {{DOCKERSOCKETS}} $FullCustomImage"
 
     if ($kind -eq "linux") {
         $ExpressionTpl = $ExpressionTpl -replace "{{DOCKERSOCKETS}}", "-v /var/run/docker.sock:/var/run/docker.sock"
@@ -149,7 +149,7 @@ $JSONData | % {
             $NumReplacer = "$i"
         }
 
-        $ContainerNameCurrent = "${ContainerNameFamily}-${NumReplacer}"
+        $ContainerNameCurrent = "$ContainerNameFamily-$NumReplacer"
         $ExistingContainer = $ExistingContainers | Where name -EQ $ContainerNameCurrent
 
         # This agent has to be removed as it exceeds the pool size
@@ -161,7 +161,7 @@ $JSONData | % {
                     Remove-AzDOAgent -AgentName $ExistingContainer.name
                 }
                 catch {
-                    Write-Error "Error ${$_.Exception.Message} occured while deleting ${$ExistingContainer.name} agent"
+                    Write-Error "Error $($_.Exception.Message) occured while deleting $($ExistingContainer.name) agent"
                 }
             }
             continue
@@ -173,7 +173,7 @@ $JSONData | % {
                 Remove-DockerContainer -Hash $ExistingContainer.hash
             }
             else{
-                Write-Output "Container ${$ExistingContainer.name} is already running"
+                Write-Output "Container $($ExistingContainer.name) is already running"
                 continue
             }
             
@@ -182,7 +182,7 @@ $JSONData | % {
         $Expression = $ExpressionTpl -replace "{{num}}", $NumReplacer
 
         Write-Output "`n===================="
-        Write-Output "Running image:`n Image name: ${FullCustomImage}`n Agent name: ${ContainerNameCurrent}`n Pool: ${Pool}"
+        Write-Output "Running image:`n Image name: $FullCustomImage`n Agent name: $ContainerNameCurrent`n Pool: $Pool"
         Write-Verbose "Invoking expression:`n$Expression"
         Invoke-Expression $Expression
     }
